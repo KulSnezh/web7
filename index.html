@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Галерея-слайдер</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+ 
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #32e7b1 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+ 
+        .gallery-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 900px;
+        }
+ 
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 32px;
+            font-weight: 700;
+        }
+ 
+        .gallery-wrapper {
+            position: relative;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+ 
+        .gallery-track {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+        }
+ 
+        .gallery-slide {
+            flex: 0 0 33.333%;
+            padding: 10px;
+            transition: transform 0.3s ease;
+        }
+ 
+        .gallery-slide:hover {
+            transform: scale(1.05);
+        }
+ 
+        .gallery-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+ 
+        .gallery-image:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+ 
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(102, 126, 234, 0.8);
+            color: white;
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+ 
+        .gallery-nav:hover {
+            background: rgba(102, 126, 234, 1);
+            transform: translateY(-50%) scale(1.1);
+        }
+ 
+        .gallery-nav.prev {
+            left: 10px;
+        }
+ 
+        .gallery-nav.next {
+            right: 10px;
+        }
+ 
+        .gallery-pager {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            gap: 15px;
+        }
+ 
+        .pager-dots {
+            display: flex;
+            gap: 10px;
+        }
+ 
+        .pager-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #ddd;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+ 
+        .pager-dot.active {
+            background: #667eea;
+            transform: scale(1.2);
+        }
+ 
+        .pager-info {
+            color: #666;
+            font-weight: 600;
+            font-size: 14px;
+            background: #f8f9ff;
+            padding: 8px 16px;
+            border-radius: 20px;
+        }
+ 
+        /* Адаптивность для планшетов */
+        @media (max-width: 768px) {
+            .gallery-container {
+                padding: 25px;
+            }
+            
+            .gallery-slide {
+                flex: 0 0 50%;
+            }
+            
+            .gallery-image {
+                height: 180px;
+            }
+            
+            .gallery-nav {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+        }
+ 
+        /* Адаптивность для смартфонов */
+        @media (max-width: 480px) {
+            .gallery-container {
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 24px;
+                margin-bottom: 20px;
+            }
+            
+            .gallery-slide {
+                flex: 0 0 100%;
+            }
+            
+            .gallery-image {
+                height: 200px;
+            }
+            
+            .gallery-nav {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+            
+            .gallery-pager {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+ 
+        /* Анимация для смены слайдов */
+        @keyframes slideIn {
+            from {
+                opacity: 0.5;
+                transform: scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+ 
+        .gallery-slide.active {
+            animation: slideIn 0.5s ease;
+        }
+    </style>
+</head>
+<body>
+    <div class="gallery-container">
+        <h1>Галерея изображений</h1>
+        
+        <div class="gallery-wrapper">
+            <button class="gallery-nav prev">‹</button>
+            <button class="gallery-nav next">›</button>
+            
+            <div class="gallery-track" id="galleryTrack">
+                <!-- Слайды будут добавлены через JavaScript -->
+            </div>
+        </div>
+        
+        <div class="gallery-pager">
+            <div class="pager-dots" id="pagerDots">
+                <!-- Точки пейджера будут добавлены через JavaScript -->
+            </div>
+            <div class="pager-info" id="pagerInfo">Страница 1 из 3</div>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Массив с URL изображений (ЗАМЕНИТЕ НА СВОИ ФОТО)
+        const images = [
+           'image71.jpg',
+            'image72.jpg',
+            'image74.jpg',
+            'image77.jpg',
+            'image76.jpg',
+            'image73.jpg',
+            'image75.jpg',
+            'image78.jpg'
+        ];
+ 
+        // Элементы DOM
+        const galleryTrack = document.getElementById('galleryTrack');
+        const pagerDots = document.getElementById('pagerDots');
+        const pagerInfo = document.getElementById('pagerInfo');
+        const prevButton = document.querySelector('.gallery-nav.prev');
+        const nextButton = document.querySelector('.gallery-nav.next');
+ 
+        // Настройки слайдера
+        let currentIndex = 0;
+        let slidesPerView = 3;
+        let totalSlides = images.length;
+        
+        // Определение количества слайдов для разных устройств
+        function updateSlidesPerView() {
+            if (window.innerWidth <= 480) {
+                slidesPerView = 1;
+            } else if (window.innerWidth <= 768) {
+                slidesPerView = 2;
+            } else {
+                slidesPerView = 3;
+            }
+            updateGallery();
+        }
+ 
+        // Инициализация галереи
+        function initGallery() {
+            // Очищаем галерею
+            galleryTrack.innerHTML = '';
+            pagerDots.innerHTML = '';
+ 
+            // Создание слайдов
+            images.forEach((image, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'gallery-slide';
+                slide.innerHTML = `<img src="${image}" alt="Изображение ${index + 1}" class="gallery-image">`;
+                galleryTrack.appendChild(slide);
+            });
+ 
+            // Создание точек пейджера
+            const totalVisibleSlides = Math.max(1, totalSlides - slidesPerView + 1);
+            for (let i = 0; i < totalVisibleSlides; i++) {
+                const dot = document.createElement('div');
+                dot.className = `pager-dot ${i === 0 ? 'active' : ''}`;
+                dot.addEventListener('click', () => goToIndex(i));
+                pagerDots.appendChild(dot);
+            }
+ 
+            updateSlidesPerView();
+            updatePager();
+        }
+ 
+        // Обновление позиции галереи
+        function updateGallery() {
+            const slideWidth = 100 / slidesPerView;
+            const maxIndex = Math.max(0, totalSlides - slidesPerView);
+            
+            // Ограничиваем индекс
+            currentIndex = Math.max(0, Math.min(currentIndex, maxIndex));
+            
+            const translateX = -currentIndex * slideWidth;
+            galleryTrack.style.transform = `translateX(${translateX}%)`;
+            
+            updatePager();
+        }
+ 
+        // Обновление пейджера
+        function updatePager() {
+            const totalVisibleSlides = Math.max(1, totalSlides - slidesPerView + 1);
+            const currentPosition = currentIndex + 1;
+            
+            // Обновление точек
+            const dots = document.querySelectorAll('.pager-dot');
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentIndex);
+            });
+            
+            // Обновление информации
+            pagerInfo.textContent = `${currentPosition} из ${totalVisibleSlides}`;
+ 
+            // Показываем/скрываем кнопки навигации
+            prevButton.style.opacity = currentIndex === 0 ? '0.5' : '1';
+            nextButton.style.opacity = currentIndex >= totalSlides - slidesPerView ? '0.5' : '1';
+        }
+ 
+        // Переход к конкретному индексу
+        function goToIndex(index) {
+            currentIndex = index;
+            updateGallery();
+        }
+ 
+        // Переход на одно изображение вперед
+        function nextSlide() {
+            const maxIndex = totalSlides - slidesPerView;
+            if (currentIndex < maxIndex) {
+                currentIndex++;
+                updateGallery();
+            } else {
+                // Если достигли конца - возвращаемся к началу
+                currentIndex = 0;
+                updateGallery();
+            }
+        }
+ 
+        // Переход на одно изображение назад
+        function prevSlide() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                updateGallery();
+            } else {
+                // Если достигли начала - переходим к концу
+                currentIndex = Math.max(0, totalSlides - slidesPerView);
+                updateGallery();
+            }
+        }
+ 
+        // Обработчики событий
+        prevButton.addEventListener('click', prevSlide);
+        nextButton.addEventListener('click', nextSlide);
+ 
+        // Обработка изменения размера окна
+        window.addEventListener('resize', updateSlidesPerView);
+ 
+        // Swipe для мобильных устройств
+        let startX = 0;
+        let endX = 0;
+ 
+        galleryTrack.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+        });
+ 
+        galleryTrack.addEventListener('touchend', (e) => {
+            endX = e.changedTouches[0].clientX;
+            handleSwipe();
+        });
+ 
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = startX - endX;
+ 
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
+            }
+        }
+ 
+        // Инициализация
+        initGallery();
+    });
+</script>
+</body>
+</html>
