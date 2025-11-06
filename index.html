@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Горизонтальный слайдер галереи</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 1rem;
+  }
+  .gallery-container {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  .slider-wrapper {
+    display: flex;
+    transition: transform 0.3s ease;
+    will-change: transform;
+  }
+  .slide {
+    flex: 0 0 auto;
+    width: calc(100% / 3);
+    box-sizing: border-box;
+    padding: 0.25rem;
+  }
+  .slide img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 4px;
+    user-select: none;
+  }
+  /* Кнопки */
+  .btn-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(255,255,255,0.8);
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.3rem 0.6rem;
+    border-radius: 50%;
+    user-select: none;
+    transition: background-color 0.2s ease;
+    z-index: 10;
+  }
+  .btn-arrow:hover:not(:disabled) {
+    background-color: rgba(200,200,200,0.9);
+  }
+  .btn-left {
+    left: 5px;
+  }
+  .btn-right {
+    right: 5px;
+  }
+  .btn-arrow:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+
+  /* Пейджер */
+  .pager {
+    text-align: center;
+    margin-top: 0.8rem;
+    font-weight: bold;
+    user-select: none;
+  }
+
+  /* Адаптив */
+  @media (max-width: 600px) {
+    .slide {
+      width: 100%;
+      padding: 0.25rem 0;
+    }
+    .gallery-container {
+      max-width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<h2>Галерея-слайдер</h2>
+
+<div class="gallery-container" id="gallery">
+  <button class="btn-arrow btn-left" id="btn-left" aria-label="Предыдущий слайд">&lt;</button>
+  
+  <div class="slider-wrapper" id="slider">
+    <!-- Слайды будут вставлены через JS -->
+  </div>
+
+  <button class="btn-arrow btn-right" id="btn-right" aria-label="Следующий слайд">&gt;</button>
+</div>
+
+<div class="pager" id="pager">Страница 1 из X</div>
+
+<script>
+
+const images = [
+  'https://yandex.ru/images/search?from=tabbar&img_url=https%3A%2F%2Fi.pinimg.com%2F474x%2F74%2F93%2F2e%2F74932ea0fba7e58f152f94c45c78bf13.jpg&lr=959&pos=2&rpt=simage&text=%D1%84%D0%BE%D1%82%D0%BA%D0%B8%20%D1%81%D0%BE%D0%B1%D0%B0%D0%BA',
+  'https://yandex.ru/images/search?from=tabbar&img_url=https%3A%2F%2Fi3.wp.com%2Fbasket-01.wbbasket.ru%2Fvol120%2Fpart12060%2F12060585%2Fimages%2Fbig%2F1.webp%3Fssl%3D1&lr=959&pos=4&rpt=simage&text=%D1%84%D0%BE%D1%82%D0%BA%D0%B8%20%D1%81%D0%BE%D0%B1%D0%B0%D0%BA',
+  'https://yandex.ru/images/search?from=tabbar&img_url=https%3A%2F%2Fcs6.pikabu.ru%2Fpost_img%2Fbig%2F2015%2F07%2F21%2F7%2F1437475337_121905287.jpg&lr=959&pos=5&rpt=simage&text=%D1%84%D0%BE%D1%82%D0%BA%D0%B8%20%D1%81%D0%BE%D0%B1%D0%B0%D0%BA',
+  'https://yandex.ru/images/search?from=tabbar&img_url=https%3A%2F%2Fimg.razrisyika.ru%2Fkart%2F142%2F1200%2F567364-schenok-milyy-4.jpg&lr=959&pos=7&rpt=simage&text=%D1%84%D0%BE%D1%82%D0%BA%D0%B8%20%D1%81%D0%BE%D0%B1%D0%B0%D0%BA',
+  'https://yandex.ru/images/search?from=tabbar&img_url=https%3A%2F%2Fi.pinimg.com%2F236x%2F04%2F3c%2F60%2F043c608409b1357667735ac204a7cd40.jpg%3Fnii%3Dt&lr=959&pos=8&rpt=simage&text=%D1%84%D0%BE%D1%82%D0%BA%D0%B8%20%D1%81%D0%BE%D0%B1%D0%B0%D0%BA',
+  'https://yandex.ru/images/search?from=tabbar&img_url=https%3A%2F%2Fpolinka.top%2Fuploads%2Fposts%2F2023-05%2F1685006047_polinka-top-p-kartinki-rotveiler-sobaka-krasivo-56.jpg&lr=959&pos=10&rpt=simage&text=%D1%84%D0%BE%D1%82%D0%BA%D0%B8%20%D1%81%D0%BE%D0%B1%D0%B0%D0%BA',
+  'https://yandex.ru/images/search?from=tabbar&img_url=https%3A%2F%2Fi.pinimg.com%2F736x%2F3b%2Fc3%2Fe4%2F3bc3e48ff291f12fc757abf5a13275b1.jpg&lr=959&pos=13&rpt=simage&text=%D1%84%D0%BE%D1%82%D0%BA%D0%B8%20%D1%81%D0%BE%D0%B1%D0%B0%D0%BA',
+  'https://yandex.ru/images/search?from=tabbar&img_url=https%3A%2F%2Fsneg.top%2Fuploads%2Fposts%2F2023-04%2F1682545396_sneg-top-p-kartinki-shchenkov-krasivo-34.jpg&lr=959&pos=17&rpt=simage&text=%D1%84%D0%BE%D1%82%D0%BA%D0%B8%20%D1%81%D0%BE%D0%B1%D0%B0%D0%BA',
+];
+
+const slider = document.getElementById('slider');
+const btnLeft = document.getElementById('btn-left');
+const btnRight = document.getElementById('btn-right');
+const pager = document.getElementById('pager');
+
+let currentIndex = 0; // индекс первого видимого слайда
+let slidesToShow = getSlidesToShow(); // количество видимых слайдов (1 или 3)
+const totalSlides = images.length;
+
+function getSlidesToShow() {
+  return window.innerWidth <= 600 ? 1 : 3;
+}
+
+function renderSlides() {
+  slider.innerHTML = '';
+  images.forEach(src => {
+    const slide = document.createElement('div');
+    slide.className = 'slide';
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = 'Изображение галереи';
+    slide.appendChild(img);
+    slider.appendChild(slide);
+  });
+}
+
+function updateSliderPosition() {
+  const slideWidth = slider.querySelector('.slide').offsetWidth;
+  
+  // Смещение в пикселях
+  const offset = currentIndex * slideWidth * -1;
+
+  slider.style.transform = translateX(${offset}px);
+
+  updatePager();
+  
+  // Блокируем кнопки на границах
+  btnLeft.disabled = currentIndex === 0;
